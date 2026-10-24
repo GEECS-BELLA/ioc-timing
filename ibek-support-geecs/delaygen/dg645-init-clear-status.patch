@@ -1,0 +1,39 @@
+diff --git a/delaygenApp/src/drvAsynDG645.cpp b/delaygenApp/src/drvAsynDG645.cpp
+index cf34535..56c4ac7 100644
+--- a/delaygenApp/src/drvAsynDG645.cpp
++++ b/delaygenApp/src/drvAsynDG645.cpp
+@@ -109,6 +109,14 @@ typedef enum {Octet,Float64,Int32} ifaceType;
+ 
+ const char *driver = "drvAsynDG645";      /* String for asynPrint */
+ 
++/* DG645InitClearStatus: 1 (upstream behaviour) sends *CLS at driver
++ * initialisation, clearing the instrument's event status registers and its
++ * error queue for every interface; 0 skips it, so initialisation sends the
++ * instrument queries only (*IDN?, LERR?). Set before drvAsynDG645() is
++ * called: var DG645InitClearStatus 0 */
++volatile int DG645InitClearStatus = 1;
++extern "C" {epicsExportAddress(int, DG645InitClearStatus);}
++
+ 
+ /* Declare port driver structure */
+ struct Port
+@@ -582,8 +590,8 @@ int drvAsynDG645(const char* myport,const char* ioport,int ioaddr)
+     }
+   pport->error = atoi(inpBuf);
+ 
+-  /* Clear status */
+-  if( writeOnly(pport,"*CLS") )
++  /* Clear status (skipped when DG645InitClearStatus is 0: a query-only init) */
++  if( DG645InitClearStatus && writeOnly(pport,"*CLS") )
+     {
+       errlogPrintf("%s::drvAsynDG645 port %s failed to clear status\n",
+                    driver, myport);
+diff --git a/delaygenApp/src/drvAsynDG645.dbd b/delaygenApp/src/drvAsynDG645.dbd
+index 389c9b6..2ddea90 100644
+--- a/delaygenApp/src/drvAsynDG645.dbd
++++ b/delaygenApp/src/drvAsynDG645.dbd
+@@ -1,2 +1,4 @@
+ # DG645 Digital Delay Generator
+ registrar(drvAsynDG645Register)
++# ioc-timing's init patch: the iocsh switch (var DG645InitClearStatus 0)
++variable(DG645InitClearStatus, int)
