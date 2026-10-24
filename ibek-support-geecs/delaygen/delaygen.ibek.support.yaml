@@ -1,0 +1,71 @@
+# yaml-language-server: $schema=https://github.com/epics-containers/ibek/releases/download/3.0.1/ibek.support.schema.json
+
+# epics-modules/delaygen: drvAsynDG645, the SRS DG645 asyn port driver, on
+# drvDG645.db (upstream's dg645.cmd: an asyn port with CR LF in / LF out,
+# drvAsynDG645(myport, ioport, -1), then the database with P, R, PORT).
+module: delaygen
+
+entity_models:
+  - name: DG645
+    description: |-
+      One SRS DG645 delay generator over its raw-socket interface (TCP 5025):
+      the asyn IP port, the drvAsynDG645 driver and drvDG645.db under
+      $(P)$(R). The driver queries *IDN? and LERR? when it is configured
+      (before iocInit) and, unless clear_status_at_init is false, sends *CLS;
+      the records read every setting once at iocInit and have no poll of
+      their own (every readback is Passive).
+    parameters:
+      name:
+        type: id
+        description: |-
+          The driver's asyn port name, e.g. DG1; the PORT macro of the records.
+          The IP port is named <name>_IP.
+      P:
+        type: str
+        description: |-
+          PV prefix, with its trailing colon
+      R:
+        type: str
+        description: |-
+          PV infix between P and the record names (upstream's R); usually empty
+        default: ""
+      address:
+        type: str
+        description: |-
+          host:port of the instrument's raw-socket interface, e.g. 192.0.2.10:5025
+      clear_status_at_init:
+        type: bool
+        description: |-
+          Send *CLS when the driver is configured (upstream behaviour): clears
+          the instrument's event status registers and its error queue, which
+          every interface shares. False (the default here) makes the driver's
+          initialisation queries only (ioc-timing's patch, README "DG645").
+        default: false
+      trace:
+        type: bool
+        description: |-
+          Put every byte written to and read from the IP port on the IOC
+          console (asynSetTraceMask 0x9, asynSetTraceIOMask 0x2), from before
+          the driver's first query: the console is the transcript.
+        default: false
+
+    pre_init:
+      - value: |
+          drvAsynIPPortConfigure("{{name}}_IP", "{{address}}", 0, 0, 0)
+          asynOctetSetInputEos("{{name}}_IP", 0, "\r\n")
+          asynOctetSetOutputEos("{{name}}_IP", 0, "\n")
+          {% if trace -%}
+          asynSetTraceIOMask("{{name}}_IP", -1, 0x2)
+          asynSetTraceMask("{{name}}_IP", -1, 0x9)
+          {% endif -%}
+          # ioc-timing's init patch (README "DG645"): 1 = upstream behaviour (*CLS at init)
+          var DG645InitClearStatus {{ 1 if clear_status_at_init else 0 }}
+          # drvAsynDG645(myport, ioport, ioaddr): *IDN? and LERR? are sent here
+          drvAsynDG645("{{name}}", "{{name}}_IP", -1)
+
+    databases:
+      - file: drvDG645.db
+        args:
+          P:
+          R:
+          PORT: "{{name}}"

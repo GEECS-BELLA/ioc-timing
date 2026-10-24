@@ -1,6 +1,9 @@
 ARG IMAGE_EXT
 
 ARG REGISTRY=ghcr.io/epics-containers
+# Built on the plain epics-base developer image (7.0.10ec2): the template's
+# iocStats, pvlogging and autosave, plus asyn and delaygen from ibek-support
+# pinned at 8545fa2 (the commit ioc-motion builds with). No vendor code.
 ARG RUNTIME=${REGISTRY}/epics-base${IMAGE_EXT}-runtime:7.0.10ec2
 ARG DEVELOPER=${REGISTRY}/epics-base${IMAGE_EXT}-developer:7.0.10ec2
 
@@ -30,6 +33,15 @@ RUN ansible.sh pvlogging
 
 COPY ibek-support/autosave/ autosave
 RUN ansible.sh autosave
+
+COPY ibek-support/asyn/ asyn
+RUN ansible.sh asyn
+
+# epics-modules/delaygen a2e58d7 (drvAsynDG645 for the SRS DG645) with the
+# init-clear-status patch (README "DG645"). Upstream ibek-support has no
+# recipe for it, so this copy is the only one and ansible finds the module once.
+COPY ibek-support-geecs/delaygen/ ${SOURCE_FOLDER}/ibek-support-geecs/delaygen/
+RUN ansible.sh delaygen
 
 # get the ioc source and build it
 COPY ioc ${SOURCE_FOLDER}/ioc

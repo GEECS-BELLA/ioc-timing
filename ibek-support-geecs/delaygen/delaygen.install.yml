@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=../../ibek-support/_scripts/support_install_variables.json
+
+# epics-modules/delaygen (APS BCDA): drvAsynDG645 for the SRS DG645, with
+# the init-clear-status patch (README "DG645"). Upstream ibek-support
+# (8545fa2) has no recipe for this module; this is the only copy in the image.
+#
+# Pinned to upstream master a2e58d7 (2026-08-20), not the R1-2-4 tag: the
+# tag's delaygenApp/src/Makefile also builds the module's example IOC
+# application, whose dbd needs calc's sseqRecord and StreamDevice (neither is
+# here), and bbac4a5 moved that IOC under iocs/ (BUILD_IOCS = NO). a2e58d7 is
+# that plus the %.11e write formats (8a9c071); the driver's init is unchanged.
+module: delaygen
+version: a2e58d732662873134e5b37251b41300eb1887cd
+organization: https://github.com/epics-modules
+
+# Only the DG645 driver is registered. The library also holds the Colby,
+# Coherent SDG and DG535 support; their dbds join here when a device needs them.
+dbds:
+  - drvAsynDG645.dbd
+
+libs:
+  - delaygen
+  - asyn
+
+# The module's RELEASE names modules only its databases or vxWorks builds
+# use (CALC for the Colby, STREAM for the BNC 505, IP/IPAC for IP-Octal);
+# none of its C++ needs them, so they are blanked rather than built.
+remove_macros:
+  - CALC
+  - STREAM
+  - IP
+  - IPAC
+  - SNCSEQ
+
+# One iocsh variable, upstream behaviour by default:
+#   DG645InitClearStatus (drvAsynDG645.cpp)  *CLS at driver init (1) or not (0)
+patch_file:
+  path: dg645-init-clear-status.patch
+  when: true
