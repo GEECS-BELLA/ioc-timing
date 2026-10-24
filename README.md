@@ -8,11 +8,14 @@ template's iocStats, pvlogging and autosave, plus:
 | Module | Version | Source | Reuse (decision 10) |
 |---|---|---|---|
 | asyn | R4-46 | upstream ibek-support recipe | tier 1, dependency |
-| delaygen | R1-2-4 | [epics-modules/delaygen](https://github.com/epics-modules/delaygen) (APS BCDA; synApps licence) | tier 1, dependency, with one build-time patch (below) |
+| delaygen | a2e58d7 (master, 2026-08; R1-2-4 + the IOC moved out + `%.11e` write formats) | [epics-modules/delaygen](https://github.com/epics-modules/delaygen) (APS BCDA; synApps licence) | tier 1, dependency, with one build-time patch (below) |
 
 `delaygen` also carries the DG535 (GPIB), Colby PDL100A and Coherent SDG
 support; only the DG645 driver is registered (`drvAsynDG645.dbd`). The
-others join `delaygen.install.yml`'s `dbds` when a device needs them.
+others join `delaygen.install.yml`'s `dbds` when a device needs them. The
+pin is a commit, not the R1-2-4 tag, because the tag's `src/Makefile` also
+builds the module's example IOC, whose dbd needs calc's `sseq` record and
+StreamDevice; upstream moved that IOC out afterwards (`delaygen.install.yml`).
 
 ## Build
 
@@ -69,7 +72,7 @@ error queue; `*ESR?` and `INSR?` (the `EventStatusLI` record, not read at
 boot) clear on read. They are left as upstream has them.
 
 `dg645-init-clear-status.patch` (applied by `delaygen.install.yml` on
-upstream R1-2-4; it also applies to upstream's current `master`) adds one
+upstream a2e58d7; it also applies to the R1-2-4 tag) adds one
 iocsh variable, defaulting to upstream's behaviour, declared in
 `drvAsynDG645.dbd` so that iocsh's `var` can set it (without the
 `variable()` line `var` prints "No known var" and the stock behaviour runs):
@@ -90,14 +93,10 @@ checking (the access file refuses every put), and `StatusClearBO` is a
 client's explicit request. The change is worth proposing upstream (an
 optional `*CLS`); until then it lives here.
 
-### Known gaps in the upstream driver (R1-2-4)
+### Known gaps in the upstream driver (a2e58d7)
 
 - **No poll.** See item 3 above: readbacks are the boot reading until a
   record is processed.
-- **Write formats.** The R1-2-4 setters write delays, holdoff and burst
-  times with `%e` (6 significant digits), which rounds a sub-picosecond
-  delay; upstream's current `master` (2026-08) writes `%.11e`. Not a
-  read-only concern; take the newer commit before a writing phase.
 - **Status PV semantics.** `StatusLI` is the last `LERR?` the driver read,
   updated only after the driver's own writes (status checking "at the
   driver level"), not a poll of the instrument's error queue.
