@@ -37,7 +37,7 @@ RUN ansible.sh autosave
 COPY ibek-support/asyn/ asyn
 RUN ansible.sh asyn
 
-# epics-modules/delaygen R1-2-4 (drvAsynDG645 for the SRS DG645) with the
+# epics-modules/delaygen a2e58d7 (drvAsynDG645 for the SRS DG645) with the
 # init-clear-status patch (README "DG645"). Upstream ibek-support has no
 # recipe for it, so this copy is the only one and ansible finds the module once.
 COPY ibek-support-geecs/delaygen/ ${SOURCE_FOLDER}/ibek-support-geecs/delaygen/
