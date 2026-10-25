@@ -23,8 +23,8 @@ No vendor code is inside, so the image could be published; until the
 organisation's package registry is set up it is built where it runs:
 
 ```
-docker build --target runtime -t ioc-timing:local .        # on the IOC host
-TARGET=runtime TAG=ioc-timing:local ./build                 # a workstation (amd64, emulated on Apple silicon)
+docker build --target runtime -t ioc-timing:local .                              # on the IOC host
+DOCKER_DEFAULT_PLATFORM=linux/amd64 TARGET=runtime TAG=ioc-timing:local ./build  # a workstation (amd64, emulated on Apple silicon)
 ```
 
 The compose files in geecs-epics name `ioc-timing:local`; the pin is this
