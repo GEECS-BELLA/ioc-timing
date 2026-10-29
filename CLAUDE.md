@@ -18,9 +18,9 @@ patch and the driver's gaps: `README.md`.
   instrument); the `delaygen.DG645` entity's `clear_status_at_init` defaults
   to false, so a boot sends queries only.
 - **Images.** CI publishes on a git tag, CalVer `YYYY.M.N` (`2026.10.1`;
-  never re-push a tag): `ghcr.io/geecs-bella/ioc-timing-runtime:<tag>` (public;
-  what hosts pull, no credentials) and `-developer` (the release job runs in
-  it; a build base). Hosts never build. Bench work from a branch: a
+  never re-push a tag): `ghcr.io/geecs-bella/ioc-timing-runtime:<tag>` (what hosts
+  pull, no credentials) and `-developer` (the release job runs in it; a build
+  base); both packages made public once, after the first tag creates them. Hosts never build. Bench work from a branch: a
   pre-release tag (`2026.10.2b1`). A local build for development:
   `DOCKER_DEFAULT_PLATFORM=linux/amd64 TARGET=runtime TAG=ioc-timing:local ./build`
   (the variable is required on Apple silicon; the image is amd64, emulated).

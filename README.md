@@ -21,9 +21,11 @@ StreamDevice; upstream moved that IOC out afterwards (`delaygen.install.yml`).
 
 No vendor code is inside, so the image is published: CI builds on every push
 and, on a git tag (CalVer `YYYY.M.N`, never re-pushed), pushes
-`ghcr.io/geecs-bella/ioc-timing-runtime:<tag>` (public; hosts pull it with no
-credentials) and `ghcr.io/geecs-bella/ioc-timing-developer:<tag>`, and the release
-job attaches the ioc schema to the GitHub release. Hosts never build. A
+`ghcr.io/geecs-bella/ioc-timing-runtime:<tag>` and
+`ghcr.io/geecs-bella/ioc-timing-developer:<tag>`, and the release job attaches the
+ioc schema and `versions.json` to the GitHub release. Both packages are made
+public once, by hand, after the first tag creates them (ghcr creates them
+private); from then hosts pull with no credentials. Hosts never build. A
 pre-release tag (`2026.10.2b1`) publishes a branch for bench work.
 
 A local build, for development only:
