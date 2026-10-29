@@ -19,16 +19,21 @@ StreamDevice; upstream moved that IOC out afterwards (`delaygen.install.yml`).
 
 ## Build
 
-No vendor code is inside, so the image could be published; until the
-organisation's package registry is set up it is built where it runs:
+No vendor code is inside, so the image is published: CI builds on every push
+and, on a git tag (CalVer `YYYY.M.N`, never re-pushed), pushes
+`ghcr.io/geecs-bella/ioc-timing-runtime:<tag>` (public; hosts pull it with no
+credentials) and `ghcr.io/geecs-bella/ioc-timing-developer:<tag>`, and the release
+job attaches the ioc schema to the GitHub release. Hosts never build. A
+pre-release tag (`2026.10.2b1`) publishes a branch for bench work.
+
+A local build, for development only:
 
 ```
-docker build --target runtime -t ioc-timing:local .                              # on the IOC host
-DOCKER_DEFAULT_PLATFORM=linux/amd64 TARGET=runtime TAG=ioc-timing:local ./build  # a workstation (amd64, emulated on Apple silicon)
+DOCKER_DEFAULT_PLATFORM=linux/amd64 TARGET=runtime TAG=ioc-timing:local ./build  # amd64, emulated on Apple silicon
 ```
 
-The compose files in geecs-epics name `ioc-timing:local`; the pin is this
-repository's commit, noted there.
+The compose files in geecs-epics pin `ghcr.io/geecs-bella/ioc-timing-runtime:<tag>`;
+a bump is a new tag here and one line there.
 
 ## DG645
 
